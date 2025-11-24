@@ -1,0 +1,106 @@
+/* 基础样式 */
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: bold;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.navbar {
+    background: #343a40;
+    color: white;
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.875em;
+    font-weight: bold;
+}
+
+.bg-success { background: #28a745; color: white; }
+.bg-danger { background: #dc3545; color: white; }
+.bg-secondary { background: #6c757d; color: white; }

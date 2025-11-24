@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>实时监控大屏 - 服务器监控系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <!-- 导航栏（不变） -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">服务器监控</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link active" href="index.html">实时监控大屏</a></li>
+          <li class="nav-item"><a class="nav-link" href="host_management.html">主机管理</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主体内容：优化监控表格，添加实时状态 -->
+  <div class="container mt-4">
+    <h2>实时监控大屏 <span class="badge bg-success">自动刷新中</span></h2>
+    <p class="text-muted">同步主机运行状态（CPU/内存使用率）</p>
+
+    <!-- 监控数据卡片 -->
+    <div class="card">
+      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+        <span>主机运行状态</span>
+        <div>
+          <!-- 刷新频率选择器 -->
+          <select id="refreshRate" class="form-select form-select-sm d-inline-block w-auto me-2">
+            <option value="3000">3秒刷新</option>
+            <option value="5000" selected>5秒刷新</option>
+            <option value="10000">10秒刷新</option>
+          </select>
+          <!-- 手动刷新按钮 -->
+          <button id="refreshBtn" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-clockwise"></i> 手动刷新
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <table class="table table-striped table-hover table-bordered">
+          <thead class="table-dark">
+            <tr>
+              <th>服务器IP</th>
+              <th>运行状态</th> <!-- 新增：在线/离线 -->
+              <th>CPU使用率</th>
+              <th>内存使用率</th>
+              <th>监控时间</th>
+            </tr>
+          </thead>
+          <tbody id="monitorTableBody">
+            <!-- 加载动画（初始状态） -->
+            <tr>
+              <td colspan="5" class="text-center">
+                <div class="spinner-border text-success" role="status">
+                  <span class="visually-hidden">加载中...</span>
+                </div>
+                <span class="ms-2">正在同步主机状态...</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script>
+    // 自动刷新监控数据
+    let refreshInterval = 5000; // 默认5秒
+    let refreshTimer = null;
+    
+    function refreshMonitorData() {
+        fetch('/api/monitor/data')
+            .then(response => response.json())
+            .then(data => {
+                updateMonitorTable(data);
+            })
+            .catch(error => {
+                console.error('获取监控数据失败:', error);
+            });
+    }
+    
+    function updateMonitorTable(hosts) {
+        const tbody = document.getElementById('monitorTableBody');
+        if (hosts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">暂无监控数据</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        hosts.forEach(host => {
+            const monitor = host.monitor || {};
+            const statusClass = host.status === 'online' ? 'success' : 'danger';
+            
+            html += `
+                <tr>
+                    <td>${host.ip_address}</td>
+                    <td><span class="badge bg-${statusClass}">${host.status_text}</span></td>
+                    <td>${monitor.cpu_usage || 'N/A'}%</td>
+                    <td>${monitor.memory_usage || 'N/A'}%</td>
+                    <td>${new Date().toLocaleString()}</td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+    }
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始加载数据
+        refreshMonitorData();
+        
+        // 设置定时刷新
+        refreshTimer = setInterval(refreshMonitorData, refreshInterval);
+        
+        // 刷新频率选择器事件
+        document.getElementById('refreshRate').addEventListener('change', function(e) {
+            refreshInterval = parseInt(e.target.value);
+            clearInterval(refreshTimer);
+            refreshTimer = setInterval(refreshMonitorData, refreshInterval);
+        });
+        
+        // 手动刷新按钮事件
+        document.getElementById('refreshBtn').addEventListener('click', refreshMonitorData);
+    });
+    </script>
+</body>
+</html>

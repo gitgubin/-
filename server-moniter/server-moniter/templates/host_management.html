@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主机管理 - 监控系统</title>
+  <!-- 使用CDN替代本地文件，避免404 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+ 
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
+      }
+      
+      .card {
+        margin-bottom: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏：页面跳转 -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">
+        <i class="fas fa-server"></i> 服务器监控系统
+      </a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="index.html">
+          <i class="fas fa-tachometer-alt"></i> 监控大屏
+        </a>
+        <a class="nav-link active" href="host_management.html">
+          <i class="fas fa-desktop"></i> 主机管理
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主体内容：添加表单 + 主机列表 -->
+  <div class="container">
+    <div class="row mb-4">
+      <div class="col-12">
+        <h2><i class="fas fa-cogs text-primary"></i> 主机管理系统</h2>
+        <p class="text-muted">管理需要监控的服务器列表</p>
+      </div>
+    </div>
+
+    <!-- 添加主机表单 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <i class="fas fa-plus-circle"></i> 添加新主机
+          </div>
+          <div class="card-body">
+            <form id="addHostForm">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="hostIp" class="form-label">
+                    <i class="fas fa-network-wired"></i> 主机IP地址 <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="hostIp" name="ip_address" 
+                         placeholder="例如：192.168.1.100" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="sshUser" class="form-label">
+                    <i class="fas fa-user"></i> SSH用户名 <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" class="form-control" id="sshUser" name="ssh_username" 
+                         placeholder="例如：root" required>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="sshPwd" class="form-label">
+                    <i class="fas fa-key"></i> SSH密码 <span class="text-danger">*</span>
+                  </label>
+                  <input type="password" class="form-control" id="sshPwd" name="ssh_password" 
+                         placeholder="输入SSH密码" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="sshPort" class="form-label">
+                    <i class="fas fa-door-open"></i> SSH端口
+                  </label>
+                  <input type="number" class="form-control" id="sshPort" name="ssh_port" 
+                         value="22" min="1" max="65535">
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-check"></i> 确认添加
+                </button>
+                <button type="reset" class="btn btn-secondary">
+                  <i class="fas fa-redo"></i> 重置表单
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="testConnection()">
+                  <i class="fas fa-plug"></i> 测试连接
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 已添加主机列表 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-list"></i> 已添加主机列表</span>
+            <span class="badge bg-light text-dark" id="hostCount">0 台主机</span>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th><i class="fas fa-network-wired"></i> 主机IP</th>
+                    <th><i class="fas fa-user"></i> SSH用户名</th>
+                    <th><i class="fas fa-door-open"></i> 端口</th>
+                    <th><i class="fas fa-calendar"></i> 添加时间</th>
+                    <th><i class="fas fa-cog"></i> 操作</th>
+                  </tr>
+                </thead>
+                <tbody id="hostTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                      暂无主机，请在上方添加
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用CDN的JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 主机管理功能
+    async function addHost() {
+    const formData = new FormData(document.getElementById('addHostForm'));
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('/api/hosts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('主机添加成功！');
+            document.getElementById('addHostForm').reset();
+            loadHosts(); // 重新加载列表
+        } else {
+            alert('添加失败: ' + result.message);
+        }
+    } catch (error) {
+        console.error('添加主机错误:', error);
+        alert('添加失败，请检查网络连接');
+    }
+}
+
+// 删除主机函数
+async function deleteHost(hostId) {
+    if (confirm('确定要删除这个主机吗？')) {
+        try {
+            const response = await fetch(`/api/hosts?id=${hostId}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('主机删除成功！');
+                loadHosts(); // 重新加载列表
+            } else {
+                alert('删除失败: ' + result.message);
+            }
+        } catch (error) {
+            console.error('删除主机错误:', error);
+            alert('删除失败，请检查网络连接');
+        }
+    }
+}
+
+    class HostManager {
+      constructor() {
+        this.init();
+      }
+
+      init() {
+        this.loadHosts();
+        this.setupEventListeners();
+        console.log('主机管理系统初始化完成');
+      }
+
+      setupEventListeners() {
+        // 添加主机表单提交
+        const addForm = document.getElementById('addHostForm');
+        if (addForm) {
+          addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addHost();
+          });
+        }
+      }
+
+      async loadHosts() {
+        try {
+          this.showLoading();
+          const response = await fetch('/api/hosts');
+          
+          if (!response.ok) {
+            throw new Error(`HTTP错误! 状态: ${response.status}`);
+          }
+          
+          const hosts = await response.json();
+          this.updateHostList(hosts);
+          
+        } catch (error) {
+          console.error('加载主机列表失败:', error);
+          this.showError('数据加载失败: ' + error.message);
+        }
+      }
+
+      showLoading() {
+        const tbody = document.getElementById('hostTableBody');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="loading-spinner">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                加载中...
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      showError(message) {
+        const tbody = document.getElementById('hostTableBody');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-danger text-center">
+                <i class="fas fa-exclamation-triangle"></i> ${message}
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      updateHostList(hosts) {
+        const tbody = document.getElementById('hostTableBody');
+        const hostCount = document.getElementById('hostCount');
+        
+        if (!tbody) return;
+
+        if (!hosts || hosts.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                暂无主机，请在上方添加
+              </td>
+            </tr>
+          `;
+          if (hostCount) hostCount.textContent = '0 台主机';
+          return;
+        }
+
+        // 更新主机数量
+        if (hostCount) {
+          hostCount.textContent = `${hosts.length} 台主机`;
+        }
+
+        // 更新主机列表
+        tbody.innerHTML = hosts.map(host => `
+          <tr>
+            <td>
+              <strong>${host.ip_address}</strong>
+            </td>
+            <td>${host.ssh_username}</td>
+            <td>
+              <span class="badge bg-secondary">${host.ssh_port || 22}</span>
+            </td>
+            <td>${new Date(host.created_at).toLocaleString()}</td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-danger" onclick="hostManager.deleteHost(${host.id})" title="删除主机">
+                  <i class="fas fa-trash"></i>
+                </button>
+                <button class="btn btn-outline-primary" onclick="hostManager.testConnection(${host.id})" title="测试连接">
+                  <i class="fas fa-plug"></i>
+                </button>
+                <button class="btn btn-outline-info" onclick="hostManager.viewDetails(${host.id})" title="查看详情">
+                  <i class="fas fa-info-circle"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async addHost() {
+        const formData = new FormData(document.getElementById('addHostForm'));
+        const data = Object.fromEntries(formData);
+
+        try {
+          const response = await fetch('/api/hosts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          
+          if (result.success) {
+            this.showMessage('success', '主机添加成功！');
+            document.getElementById('addHostForm').reset();
+            this.loadHosts();
+          } else {
+            this.showMessage('error', '添加失败: ' + result.message);
+          }
+        } catch (error) {
+          this.showMessage('error', '添加失败，请检查网络连接');
+        }
+      }
+
+      async deleteHost(hostId) {
+        if (confirm('确定要删除这个主机吗？此操作不可撤销！')) {
+          try {
+            const response = await fetch(`/api/hosts?id=${hostId}`, {
+              method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+              this.showMessage('success', '主机删除成功！');
+              this.loadHosts();
+            } else {
+              this.showMessage('error', '删除失败: ' + result.message);
+            }
+          } catch (error) {
+            this.showMessage('error', '删除失败，请检查网络连接');
+          }
+        }
+      }
+
+      async testConnection(hostId) {
+        this.showMessage('info', '连接测试功能开发中...');
+      }
+
+      async viewDetails(hostId) {
+        this.showMessage('info', '详情查看功能开发中...');
+      }
+
+      showMessage(type, message) {
+        // 简单的消息提示
+        const alertClass = type === 'success' ? 'alert-success' : 
+                          type === 'error' ? 'alert-danger' : 'alert-info';
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // 添加到容器顶部
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // 3秒后自动消失
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.remove();
+          }
+        }, 3000);
+      }
+    }
+
+    // 测试连接功能
+    function testConnection() {
+      const formData = new FormData(document.getElementById('addHostForm'));
+      const data = Object.fromEntries(formData);
+      
+      if (!data.ip_address || !data.ssh_username || !data.ssh_password) {
+        alert('请先填写完整的主机信息');
+        return;
+      }
+      
+      hostManager.showMessage('info', '连接测试功能开发中...');
+    }
+
+    // 全局实例
+    const hostManager = new HostManager();
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('页面加载完成');
+    });
+  </script>
+</body>
+</html>
