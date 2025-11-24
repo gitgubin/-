@@ -1,0 +1,35 @@
+- name: 采集远程主机CPU和内存使用率
+  hosts: monitored_hosts  # 目标主机组（对应hosts.ini中的[monitored_hosts]）
+  gather_facts: true     # 不采集默认系统信息，加快执行速度
+  vars:
+    # 可在此处定义变量（如SSH用户名、密码，建议通过命令行传入更安全）
+    ansible_ssh_user: "root"  # SSH用户名
+    # ansible_ssh_pass: "your_password"  # 不建议硬编码，通过--extra-vars传入
+
+  tasks:
+    # 任务1：采集CPU使用率
+    - name: 执行命令获取CPU使用率
+      shell: |
+        # 兼容CentOS/Ubuntu，计算非空闲CPU百分比
+        top -bn1 | grep 'Cpu(s)' | sed 's/.*, *\([0-9.]*\)%* id.*/\1/' | awk '{print 100 - $1 "%" }'
+      register: cpu_result  # 保存命令输出到变量cpu_result
+
+    # 任务2：采集内存使用率
+    - name: 执行命令获取内存使用率
+      shell: |
+        # 计算已用内存占比（总内存-空闲内存-缓存）/总内存
+        free | grep Mem | awk '{printf "%.2f%%", ($3/$2)*100}'
+      register: mem_result  # 保存命令输出到变量mem_result
+
+    # 任务3：将结果保存到本地文件（在监控主机生成）
+    - name: 存储采集结果到本地
+      copy:
+        content: |
+          {
+            "host": "{{ inventory_hostname }}",  # 主机IP
+            "timestamp": "{{ ansible_date_time.iso8601 }}",  # 时间戳
+            "cpu_usage": "{{ cpu_result.stdout }}",
+            "mem_usage": "{{ mem_result.stdout }}"
+          }
+        dest: "./output/{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}_{{ inventory_hostname }}.json"
+      delegate_to: localhost 
