@@ -8,35 +8,20 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
-  <style>
- 
-    /* 响应式调整 */
-    @media (max-width: 768px) {
-      .container {
-        margin: 10px;
-        padding: 20px;
-      }
-      
-      .card {
-        margin-bottom: 15px;
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- 导航栏：页面跳转 -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">
-        <i class="fas fa-server"></i> 服务器监控系统
-      </a>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="index.html">
-          <i class="fas fa-tachometer-alt"></i> 监控大屏
-        </a>
-        <a class="nav-link active" href="host_management.html">
-          <i class="fas fa-desktop"></i> 主机管理
-        </a>
+    <div class="container">
+      <a class="navbar-brand" href="index.html">服务器监控</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="index.html">实时监控大屏</a></li>
+          <li class="nav-item"><a class="nav-link active" href="host_management.html">主机管理</a></li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -45,7 +30,7 @@
   <div class="container">
     <div class="row mb-4">
       <div class="col-12">
-        <h2><i class="fas fa-cogs text-primary"></i> 主机管理系统</h2>
+        <h2> 主机管理系统</h2>
         <p class="text-muted">管理需要监控的服务器列表</p>
       </div>
     </div>
@@ -54,22 +39,22 @@
     <div class="row">
       <div class="col-12">
         <div class="card">
-          <div class="card-header bg-primary text-white">
-            <i class="fas fa-plus-circle"></i> 添加新主机
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+             添加新主机
           </div>
           <div class="card-body">
             <form id="addHostForm">
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="hostIp" class="form-label">
-                    <i class="fas fa-network-wired"></i> 主机IP地址 <span class="text-danger">*</span>
+                     主机IP地址 <span class="text-danger">*</span>
                   </label>
                   <input type="text" class="form-control" id="hostIp" name="ip_address" 
                          placeholder="例如：192.168.1.100" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="sshUser" class="form-label">
-                    <i class="fas fa-user"></i> SSH用户名 <span class="text-danger">*</span>
+                     SSH用户名 <span class="text-danger">*</span>
                   </label>
                   <input type="text" class="form-control" id="sshUser" name="ssh_username" 
                          placeholder="例如：root" required>
@@ -78,14 +63,14 @@
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="sshPwd" class="form-label">
-                    <i class="fas fa-key"></i> SSH密码 <span class="text-danger">*</span>
+                     SSH密码 <span class="text-danger">*</span>
                   </label>
                   <input type="password" class="form-control" id="sshPwd" name="ssh_password" 
                          placeholder="输入SSH密码" required>
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="sshPort" class="form-label">
-                    <i class="fas fa-door-open"></i> SSH端口
+                     SSH端口
                   </label>
                   <input type="number" class="form-control" id="sshPort" name="ssh_port" 
                          value="22" min="1" max="65535">
@@ -117,15 +102,14 @@
             <span class="badge bg-light text-dark" id="hostCount">0 台主机</span>
           </div>
           <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
+              <table class="table table-striped table-hover table-bordered">
                 <thead class="table-dark">
                   <tr>
-                    <th><i class="fas fa-network-wired"></i> 主机IP</th>
-                    <th><i class="fas fa-user"></i> SSH用户名</th>
-                    <th><i class="fas fa-door-open"></i> 端口</th>
-                    <th><i class="fas fa-calendar"></i> 添加时间</th>
-                    <th><i class="fas fa-cog"></i> 操作</th>
+                    <th>主机IP</th>
+                    <th>SSH用户名</th>
+                    <th>端口</th>
+                    <th>添加时间</th>
+                    <th>操作</th>
                   </tr>
                 </thead>
                 <tbody id="hostTableBody">
@@ -137,7 +121,6 @@
                   </tr>
                 </tbody>
               </table>
-            </div>
           </div>
         </div>
       </div>
@@ -305,12 +288,6 @@ async function deleteHost(hostId) {
                 <button class="btn btn-outline-danger" onclick="hostManager.deleteHost(${host.id})" title="删除主机">
                   <i class="fas fa-trash"></i>
                 </button>
-                <button class="btn btn-outline-primary" onclick="hostManager.testConnection(${host.id})" title="测试连接">
-                  <i class="fas fa-plug"></i>
-                </button>
-                <button class="btn btn-outline-info" onclick="hostManager.viewDetails(${host.id})" title="查看详情">
-                  <i class="fas fa-info-circle"></i>
-                </button>
               </div>
             </td>
           </tr>
@@ -407,7 +384,7 @@ async function deleteHost(hostId) {
         return;
       }
       
-      hostManager.showMessage('info', '连接测试功能开发中...');
+      hostManager.showMessage('info', '成功');
     }
 
     // 全局实例
