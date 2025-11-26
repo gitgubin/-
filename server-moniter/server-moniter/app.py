@@ -1,18 +1,46 @@
+import os
 from flask import Flask, render_template, request, jsonify, session, redirect, send_from_directory
 from models import db, Host, MonitorData
 from monitor import SSHAgent
 import threading
 import time
 from datetime import datetime, timedelta
-import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////data/database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+def init_database():
+    """初始化数据库"""
+    with app.app_context():
+        try:
+            # 检查数据库文件是否存在
+            db_path = '/data/database.db'
+            if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+                print("数据库文件不存在或为空，重新创建...")
+                db.create_all()
+                print("数据库表结构创建完成")
+            else:
+                # 验证表结构
+                from sqlalchemy import inspect
+                inspector = inspect(db.engine)
+                tables = inspector.get_table_names()
+                print(f"数据库中的表: {tables}")
+                
+                if 'host' not in tables:
+                    print("host表不存在，重新创建表结构...")
+                    db.create_all()
+        except Exception as e:
+            print(f"数据库初始化错误: {e}")
+            # 强制重新创建
+            db.create_all()
+            print("数据库强制重建完成")
+
+# 在应用启动时初始化数据库
+init_database()
 # 全局变量存储监控数据
 monitor_data_cache = {}
 
