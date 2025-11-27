@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>主机管理 - 监控系统</title>
-  <!-- 使用CDN替代本地文件，避免404 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-  <!-- 导航栏：页面跳转 -->
+  <!-- 导航栏 -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
       <a class="navbar-brand" href="index.html">服务器监控</a>
@@ -26,7 +25,7 @@
     </div>
   </nav>
 
-  <!-- 主体内容：添加表单 + 主机列表 -->
+  <!-- 主体内容 -->
   <div class="container">
     <div class="row mb-4">
       <div class="col-12">
@@ -102,32 +101,31 @@
             <span class="badge bg-light text-dark" id="hostCount">0 台主机</span>
           </div>
           <div class="card-body">
-              <table class="table table-striped table-hover table-bordered">
-                <thead class="table-dark">
-                  <tr>
-                    <th>主机IP</th>
-                    <th>SSH用户名</th>
-                    <th>端口</th>
-                    <th>添加时间</th>
-                    <th>操作</th>
-                  </tr>
-                </thead>
-                <tbody id="hostTableBody">
-                  <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                      <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                      暂无主机，请在上方添加
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <table class="table table-striped table-hover table-bordered ">
+              <thead class="">
+                <tr>
+                  <th>主机IP</th>
+                  <th>SSH用户名</th>
+                  <th>端口</th>
+                  <th>添加时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="hostTableBody">
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                    暂无主机，请在上方添加
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 使用CDN的JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // 主机管理功能
@@ -339,14 +337,6 @@ async function deleteHost(hostId) {
             this.showMessage('error', '删除失败，请检查网络连接');
           }
         }
-      }
-
-      async testConnection(hostId) {
-        this.showMessage('info', '连接测试功能开发中...');
-      }
-
-      async viewDetails(hostId) {
-        this.showMessage('info', '详情查看功能开发中...');
       }
 
       showMessage(type, message) {
