@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# 安装系统依赖（包括SQLite3）
+# 安装系统依赖
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     curl \
@@ -24,7 +24,7 @@ ENV SQLALCHEMY_DATABASE_URI=sqlite:////data/database.db
 # 暴露端口
 EXPOSE 5000
 
-# 创建启动脚本（修复版）
+# 创建启动脚本
 RUN echo '#!/bin/bash\n\
 echo "=== 初始化数据库 === "\n\
 # 确保数据目录存在\n\

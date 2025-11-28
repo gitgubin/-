@@ -45,7 +45,7 @@ init_database()
 monitor_data_cache = {}
 
 def collect_monitor_data():
-    """后台监控数据采集线程 - 修复版"""
+    """后台监控数据采集线程"""
     while True:
         try:
             # 手动创建应用上下文
@@ -76,7 +76,7 @@ def collect_monitor_data():
                                 disk_usage=system_info['disk_usage']
                             )
                             db.session.add(monitor_record)
-                            db.session.commit()  # ✅ 在上下文中提交
+                            db.session.commit()  # 在上下文中提交
                             
                             # 更新缓存
                             current_data[host.id] = system_info
